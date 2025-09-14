@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 from .auth_model import Auth
 from .jwt_service import JWTService
 from model.user_model import User
-
+from utils.get_settings import get_is_public
 class BaseResponse(BaseModel):
     success: bool
     data: Any | None = None
@@ -13,7 +13,7 @@ class BaseResponse(BaseModel):
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
+    email: Optional[EmailStr] = None
     password: str = Field(..., min_length=8)
     display_name: str = Field(..., min_length=1, max_length=100)
 
@@ -67,6 +67,13 @@ async def get_current_user(authorization: Optional[str] = Header(None)) -> Optio
 @router.post("/register", response_model=BaseResponse)
 async def register(request: RegisterRequest):
     """ユーザー登録"""
+
+    if not get_is_public():
+        return BaseResponse(
+            success=False,
+            error="Registration is not allowed"
+        )
+
     try:
         # 既存ユーザーをチェック
         existing_auth_username = await Auth.find_by_username(request.username)

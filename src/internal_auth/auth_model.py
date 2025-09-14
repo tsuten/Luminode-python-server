@@ -9,7 +9,7 @@ class Auth(Document):
     """内部認証データモデル（ユーザーデータと分離）"""
     user_id: UUID = Field(..., description="関連するユーザーのID")
     username: str = Field(..., min_length=3, max_length=50, description="ログイン用ユーザー名")
-    email: EmailStr = Field(..., description="メールアドレス")
+    email: Optional[EmailStr] = Field(default=None, description="メールアドレス")
     password_hash: str = Field(..., description="ハッシュ化されたパスワード")
     is_active: bool = Field(default=True, description="アカウントがアクティブかどうか")
     is_verified: bool = Field(default=False, description="メール認証済みかどうか")
