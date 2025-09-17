@@ -32,24 +32,20 @@ async def send_message(sid, data):
         MessageSchema(**data)
     except Exception as e:
         error_payload = format_exception_for_response(e, pydantic_nester=nest_pydantic_errors)
-        await sio.emit("system", BaseResponse(success=False, error=error_payload).model_dump(), room=sid)
-        return
+        return BaseResponse(success=False, error=error_payload).model_dump()
 
     send_to_type, send_to_id = extract_elements_from_id(data.get("send_to"))
     if not send_to_type or not send_to_id:
-        await sio.emit("system", BaseResponse(success=False, error="Invalid send_to format").model_dump(), room=sid)
-        return
+        return BaseResponse(success=False, error="Invalid send_to format").model_dump()
 
     if send_to_type == "channel":
         try:
             channel = await Channel.get(send_to_id)
             if not channel:
-                await sio.emit("system", BaseResponse(success=False, error="Channel not found").model_dump(), room=sid)
-                return
+                return BaseResponse(success=False, error="Channel not found").model_dump()
         except Exception as e:
             error_payload = format_exception_for_response(e, pydantic_nester=nest_pydantic_errors)
-            await sio.emit("system", BaseResponse(success=False, error=error_payload).model_dump(), room=sid)
-            return
+            return BaseResponse(success=False, error=error_payload).model_dump()
 
     send_to = send_to_type + ":" + str(send_to_id)
     sent_by = "user:" + str(user_id)
@@ -60,9 +56,9 @@ async def send_message(sid, data):
         await message.insert()
     except Exception as e:
         error_payload = format_exception_for_response(e, pydantic_nester=nest_pydantic_errors)
-        await sio.emit("system", BaseResponse(success=False, error=error_payload).model_dump(), room=sid)
-        return
+        return BaseResponse(success=False, error=error_payload).model_dump()
     
     ee.emit("message_creation", MessageResponse(**message.to_dict()))
     # don't forget to convert to dict
     await sio.emit("system", BaseResponse(success=True, data=message.to_dict()).model_dump(), room=sid)
+    return BaseResponse(success=True, data=message.to_dict()).model_dump()
