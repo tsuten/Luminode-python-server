@@ -1,13 +1,13 @@
 from datetime import datetime
 from beanie import Document, before_event, Insert
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from schema.message_schema import MessageType
 
 class Message(Document):
-    type: MessageType
-    content: str
-    sent_by: str
-    sent_to: str
+    type: Optional[MessageType] = None
+    content: Optional[str] = None
+    sent_by: Optional[str] = None
+    sent_to: Optional[str] = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     is_deleted: bool = False
@@ -23,8 +23,8 @@ class Message(Document):
     def to_dict(self) -> Dict[str, Any]:
         """JSONシリアライズ用の辞書を返す"""
         return {
-            "id": str(self.id),
-            "type": self.type.value,
+            "id": "message:" + str(self.id),
+            "type": self.type.value if self.type else None,
             "content": self.content,
             "sent_by": self.sent_by,
             "sent_to": self.sent_to,
