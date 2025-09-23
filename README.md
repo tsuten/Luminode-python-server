@@ -1,35 +1,37 @@
 # Luminode Chat Server
 
-#### リアルタイムチャットサーバー
-Python/FastAPIとSocket.IOを使用したリアルタイムチャットサーバーの実装です。
+#### Realtime Messaging Server
+Realtime messaging server implemented with Python/FastAPI and Socket.IO.
 
-## ⚙️ このリポジトリについて
-ここでは具体的なサーバー実装を扱います。Luminode全体のドキュメントは[こちら](https://github.com/Luminode-Project/Luminode)を参照してください。
+## ⚙️ About this repository
+This repository handles the specific server implementation. Please refer to the parent repository [Luminode](https://github.com/Luminode-Project/Luminode) for the overall documentation.
 
-## 仕様
-### ✨ データ処理の流れ
-<img src="https://i.gyazo.com/497a093c2c2032d76fb1e44cd49d1b59.png" alt="仕様" align="right" width="30%" />
+## Specification
+### ✨ Data Processing Flow
+<img src="https://i.gyazo.com/497a093c2c2032d76fb1e44cd49d1b59.png" alt="Specification" align="right" width="30%" />
 
-1. connection → receiver（send）: クライアントからのメッセージ/イベントを受信
-2. receiver → model（call）: 操作の呼び出し（検証・権限確認）
-3. model → sender（event call）: データベースの操作をリアルタイムに通知
-4. receiver → sender（event）: データベースを通さないリアルタイム処理
-5. sender → connection（send）: 対象接続/ルームへブロードキャスト
+1. connection → receiver（send）: Receive messages/events from the client
+2. receiver → model（call）: Call the operation (validation/permission check)
+3. model → sender（event call）: Realtime notification of database operations
+4. receiver → sender（event）: Realtime processing without going through the database
+5. sender → connection（send）: Broadcast to the target connection/room
 
-### メッセージ送信
-Socket.IOのeventを使用してメッセージを送信します。
-イベント毎の仕様は[メッセージイベント一覧](docs/message_events.md)を参照してください。
+### Message Sending
+Events in Socket.IO is used to send messages.
+Please refer to [Message Events List](docs/message_events.md) for the specification of each event.
 
-### データベース
-データベースはMongoDB、ODMはBeanieを使用します。
-データベースのスキーマは[データベーススキーマ一覧](docs/database_schemas.md)を参照してください。
+### Database
+The database is MongoDB, and the ODM is Beanie.
+Please refer to [Database Schema List](docs/database_schemas.md) for the schema of the database.
 
-### 認証
-認証はJWTを使用します。
-認証の仕様は[認証仕様](docs/authentication.md)を参照してください。
+<!--
+### Authentication
+Authentication is using JWT.
+Please refer to [Authentication Specification](docs/authentication.md) for the specification of authentication.
+-->
 
-## どうやって使う？
-### 開発時
+## How to use?
+### Development
 ```bash
 pip install -r requirements.txt
 ```
@@ -37,9 +39,12 @@ pip install -r requirements.txt
 uvicorn src.app:app_socketio --reload
 ```
 
-### 本番時
-本番環境でこちらサーバーの単体での実行は推奨されていません。代わりに[Luminode](https://github.com/Luminode-Project/Luminode)を参照し、利用してください。
+### Production
+It is not recommended to run this server alone in a production environment. Please refer to [Luminode](https://github.com/Luminode-Project/Luminode) for usage.
+
+### README in other languages
+- 🇯🇵 日本語版は[こちら](README-日本語.md)を参照してください。
 
 ---
 
-*技術的な詳細やセットアップ手順については、[技術ドキュメント](docs/tech.md)をご覧ください。*
+*Please refer to [Technical Document](docs/tech.md) for technical details and setup instructions.*
