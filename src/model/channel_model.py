@@ -8,6 +8,8 @@ class Channel(Document):
     name: str
     description: str
     type: ChannelType
+    # 形式: "category:{id}" を格納
+    category_id: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
     is_deleted: bool = False
@@ -26,5 +28,6 @@ class Channel(Document):
             "id": str(self.id),
             "name": self.name,
             "description": self.description,
-            "type": self.type.value
+            "type": self.type.value,
+            "category_id": self.category_id,
         }

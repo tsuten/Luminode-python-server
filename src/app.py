@@ -15,6 +15,9 @@ from model.user_model import User
 from model.admin_model import Admin
 from model.server_model import Server, ServerSettings
 from model.setup_model import SetupProgress
+from model.approval_model import Approval
+from model.user_status_model import UserStatus
+from model.category_model import Category
 from internal_auth.auth_model import Auth
 from sockets import sio
 import socketio
@@ -26,7 +29,18 @@ async def lifespan(app):
     client = AsyncIOMotorClient("mongodb://127.0.0.1:27017", serverSelectionTimeoutMS=2000)
     print("lifespan: mongo client creation success")
     db = client.get_database("test")
-    await init_beanie(database=db, document_models=[Message, Channel, User, Admin, Server, ServerSettings, SetupProgress, Auth])
+    await init_beanie(database=db, document_models=[
+    Message,
+    Channel,
+    User,
+    Admin,
+    Server,
+    ServerSettings,
+    SetupProgress,
+    Approval,
+    UserStatus,
+    Auth,
+    Category])
     print("lifespan: beanie initialization success")
     yield
     client.close()
@@ -150,8 +164,10 @@ async def connect(sid, environ, auth=None):
         })
         
         # ユーザーをオンライン状態に設定
-        user.set_online_status(True)
-        await user.save()
+        from model.user_status_model import UserStatus
+        user_status = await UserStatus.get_or_create_status(user_uuid)
+        user_status.set_online()
+        await user_status.save()
         
         print(f"connect accepted {sid}: {auth.username} ({user.display_name})")
         
@@ -181,10 +197,13 @@ async def disconnect(sid):
             if user_id:
                 # ユーザーをオフライン状態に設定
                 from model.user_model import User
+                from model.user_status_model import UserStatus
+                from uuid import UUID
                 user = await User.get(user_id)
                 if user:
-                    user.set_online_status(False)
-                    await user.save()
+                    user_status = await UserStatus.get_or_create_status(user.auth_id)
+                    user_status.set_offline()
+                    await user_status.save()
             
             print(f"disconnect {sid}: {username}")
         else:
@@ -222,6 +241,8 @@ async def message(sid, data):
 import receiver.message_receiver  # noqa: E402,F401
 import sender.message_sender  # noqa: E402,F401
 import receiver.channel_receiver  # noqa: E402,F401
+import receiver.room_receiver  # noqa: E402,F401
+import receiver.category_receiver  # noqa: E402,F401
 
 # Setup API router registration
 from api.setup_api import router as setup_router
@@ -230,6 +251,10 @@ app_fastapi.include_router(setup_router, prefix="/setup", tags=["setup"])
 # Auth API router registration
 from internal_auth.auth_api import router as auth_router
 app_fastapi.include_router(auth_router, prefix="/auth", tags=["auth"])
+
+# Gateway API router registration
+from api.gateway_api import router as gateway_router
+app_fastapi.include_router(gateway_router, tags=["gateway"])
 
 if __name__ == "__main__":
     uvicorn.run("app:app_socketio", host="0.0.0.0", port=8000, reload=True)

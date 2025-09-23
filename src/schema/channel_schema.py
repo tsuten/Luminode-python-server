@@ -12,9 +12,11 @@ class ChannelSchema(BaseModel):
     name: str
     description: str
     type: ChannelType
+    category_id: Optional[str] = None
 
 class ChannelResponse(BaseModel):
     id: str
     name: str
     description: str
     type: ChannelType
+    category_id: Optional[str] = None
