@@ -6,6 +6,7 @@ from utils.nest_pydantic_errors import nest_pydantic_errors
 from model.message_model import Message
 from utils.extract_elements_from_id import extract_elements_from_id
 from datetime import datetime
+from model.image_model import Image
 class BaseResponse(BaseModel):
     success: bool
     data: Any | None = None
@@ -63,10 +64,17 @@ async def get_timeline(sid, data):
 
     try:
         messages = (await Message.find(Message.is_deleted == False, Message.sent_to == "channel:" + id_value, Message.created_at < validated_data.until).sort(-Message.created_at).to_list())[:validated_data.amount]
+        images = (await Image.find(Image.is_deleted == False, Image.channel_id == "channel:" + id_value).sort(-Image.created_at).to_list())[:validated_data.amount]
 
-        timeline_length = len(messages)
+        timeline = messages + images
+        timeline.sort(key=lambda x: x.created_at, reverse=True)
+        
+        # 最終的に返す数をamountに制限
+        timeline = timeline[:validated_data.amount]
+        timeline_length = len(timeline)
+        
         return BaseResponse(success=True, data={
-            "timeline": [message.to_dict() for message in messages],
+            "timeline": [item.to_dict() for item in timeline],
             "timeline_length": timeline_length
         }).model_dump()
     except Exception as e:

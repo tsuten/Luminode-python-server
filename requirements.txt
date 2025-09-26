@@ -59,3 +59,5 @@ uvloop==0.21.0
 watchfiles==1.1.0
 websockets==15.0.1
 wsproto==1.2.0
+aiofiles==23.2.1
+Pillow==10.0.1
