@@ -10,6 +10,7 @@ from pyee.asyncio import AsyncIOEventEmitter
 from app import ee
 from model.channel_model import Channel
 from utils.extract_elements_from_id import extract_elements_from_id
+from schema.update_notification_schema import UpdateNotification, UpdateNotificationType
 class BaseResponse(BaseModel):
     success: bool
     data: Any | None = None
@@ -61,6 +62,10 @@ async def send_message(sid, data):
     ee.emit("message_creation", MessageResponse(**message.to_dict()))
     # don't forget to convert to dict
     await sio.emit("system", BaseResponse(success=True, data=message.to_dict()).model_dump(), room=sid)
+
+    # sender handlers
+    ee.emit("update_notification", UpdateNotification(id="notification:" + str(message.id), collection=UpdateNotificationType.MESSAGE, additional_data={"sent_to": message.sent_to}, timestamp=datetime.now().isoformat()))
+
     return BaseResponse(success=True, data=message.to_dict()).model_dump()
 
 @sio.event
